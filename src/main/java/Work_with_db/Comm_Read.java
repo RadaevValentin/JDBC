@@ -2,6 +2,7 @@ package Work_with_db;
 
 import Business_logic.ConnectionDb;
 import Business_logic.Employee;
+import User_interaction_module.IUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import java.io.BufferedReader;
@@ -15,25 +16,22 @@ import java.util.List;
  * Created by Your Friend Jesus on 16.04.2017.
  */
 public class Comm_Read implements IServer_command {
-    private BufferedReader reader;
-    private ConnectionDb connection;
+    private IUser user;
 
-    public Comm_Read(BufferedReader reader, ConnectionDb c){
-        this.reader = reader;
-        connection = c;
+    public Comm_Read(IUser user){
+        this.user = user;
     }
 
     @Override
     public void execute() {
-        connection.connect();
         String s = "yes";
         try {
             while (s.equalsIgnoreCase("yes")) {
                 System.out.println("Insert empno:");
-                String q = reader.readLine();
+                String q = user.getConnection().getReader().readLine();
                 Employee e = new Employee(Integer.parseInt(q));
                 System.out.println("Do you want to find employee with empno " + e.getEmpno());
-                if (reader.readLine().equalsIgnoreCase("yes")) {
+                if (user.getConnection().getReader().readLine().equalsIgnoreCase("yes")) {
                     System.out.println("========Searching INFO About employee by empno========");
                     String SQL = "SELECT * FROM emp WHERE empno = ?";
                     QueryRunner query = new QueryRunner();
@@ -55,14 +53,14 @@ public class Comm_Read implements IServer_command {
                             return employees;
                         }
                     };
-                    List<Employee> emp = query.query(connection.getConn(), SQL, res, e.getEmpno());
+                    List<Employee> emp = query.query(user.getConnection().getConn(), SQL, res, e.getEmpno());
                     for(Employee em: emp){
                         System.out.println("Employees found : " + em.toString());
                     }
                 }
                 else{break;}
                 System.out.println("Do you want to continue?");
-                s = reader.readLine();
+                s = user.getConnection().getReader().readLine();
             }
         }
         catch (IOException | SQLException e1) {
@@ -70,9 +68,6 @@ public class Comm_Read implements IServer_command {
         }
         catch (Exception e1) {
             e1.printStackTrace();
-        }
-        finally {
-            connection.disconnect();
         }
     }
 }

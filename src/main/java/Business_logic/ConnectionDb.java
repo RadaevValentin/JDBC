@@ -2,6 +2,10 @@ package Business_logic;
 
 import User_interaction_module.IUser;
 import org.apache.commons.dbutils.DbUtils;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -19,47 +23,29 @@ public class ConnectionDb {
     public void setConn(Connection conn) {
         this.conn = conn;
     }
-    public String getUrl() {
-        return url;
+    public BufferedReader getReader() {
+        return reader;
     }
-    public void setUrl(String url) {
-        this.url = url;
-    }
-    public String getDriver() {
-        return driver;
-    }
-    public void setDriver(String driver) {
-        this.driver = driver;
-    }
-    public String getLogin() {
-        return login;
-    }
-    public void setLogin(String login) {
-        this.login = login;
-    }
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
+    public void setReader(BufferedReader reader) {
+        this.reader = reader;
     }
 
-    private String url;
-    private String driver;
-    private String login;
-    private String password;
+    private BufferedReader reader;
+    IUser user;
+
+
+
     public ConnectionDb(IUser user){
-        this.driver = user.getDriver();
-        this.url = user.getUrl();
-        this.login = user.getName();
-        this.password = user.getPassword();
+        this.user = user;
     }
+
     public Connection connect() {
         try {
             Locale.setDefault(Locale.ENGLISH);
-            DbUtils.loadDriver(driver);
-            conn = DriverManager.getConnection(url, login, password);
+            DbUtils.loadDriver(user.getDriver());
+            conn = DriverManager.getConnection(user.getUrl(), user.getName(), user.getPassword());
             System.out.println("Connection succesful.");
+            reader = new BufferedReader(new InputStreamReader(System.in));
         } catch (SQLException se) {
             se.printStackTrace();
             System.out.println("Error! Check input data and try again.");
@@ -74,6 +60,17 @@ public class ConnectionDb {
         }
         else{
             System.out.println("There was no connection.");
+        }
+        if(reader != null){
+            try {
+                reader.close();
+                System.out.println("Reader closed.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else{
+            System.out.println("There was no open reader.");
         }
     }
 }

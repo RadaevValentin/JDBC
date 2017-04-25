@@ -2,6 +2,7 @@ package Work_with_db;
 
 import Business_logic.ConnectionDb;
 import Business_logic.Employee;
+import User_interaction_module.IUser;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import java.io.BufferedReader;
@@ -15,27 +16,24 @@ import java.util.List;
  * Created by Your Friend Jesus on 16.04.2017.
  */
 public class Comm_Search implements IServer_command {
-    private BufferedReader reader;
-    private ConnectionDb connection;
+    private IUser user;
 
-    public Comm_Search(BufferedReader reader, ConnectionDb c){
-        this.reader = reader;
-        connection = c;
+    public Comm_Search(IUser user){
+        this.user = user;
     }
 
     @Override
     public void execute() {
-        connection.connect();
         String s = "yes";
         try {
             while (s.equalsIgnoreCase("yes")) {
                 System.out.println("How would you like to search? \n1 - by deptno \n2 - by job");
-                String sol = reader.readLine();
+                String sol = user.getConnection().getReader().readLine();
                 if (Integer.parseInt(sol) == 1) {
                     System.out.println("Insert deptno:");
-                    Employee e = new Employee(new Integer(Integer.parseInt(reader.readLine())));
+                    Employee e = new Employee(new Integer(Integer.parseInt(user.getConnection().getReader().readLine())));
                     System.out.println("Do you want to find employees with deptno " + e.getDeptno());
-                    if (reader.readLine().equalsIgnoreCase("yes")) {
+                    if (user.getConnection().getReader().readLine().equalsIgnoreCase("yes")) {
                         System.out.println("========Searching INFO About employees by deptno========");
                         String SQL = "SELECT * FROM emp WHERE deptno = ?";
                         QueryRunner query = new QueryRunner();
@@ -57,7 +55,7 @@ public class Comm_Search implements IServer_command {
                                 return employees;
                             }
                         };
-                        List<Employee> emp = query.query(connection.getConn(), SQL, res, e.getDeptno());
+                        List<Employee> emp = query.query(user.getConnection().getConn(), SQL, res, e.getDeptno());
                         for(Employee em: emp){
                             System.out.println("Employees found : " + em.toString());
                         }
@@ -65,13 +63,13 @@ public class Comm_Search implements IServer_command {
                         break;
                     }
                     System.out.println("Do you want to continue?");
-                    s = reader.readLine();
+                    s = user.getConnection().getReader().readLine();
                 } else {
                     if (Integer.parseInt(sol) == 2) {
                         System.out.println("Insert job:");
-                        Employee e = new Employee(reader.readLine());
+                        Employee e = new Employee(user.getConnection().getReader().readLine());
                         System.out.println("Do you want to find employees with job " + e.getJob());
-                        if (reader.readLine().equalsIgnoreCase("yes")) {
+                        if (user.getConnection().getReader().readLine().equalsIgnoreCase("yes")) {
                             System.out.println("========Searching INFO About employees by job========");
                             String SQL = "SELECT * FROM emp WHERE job = ?";
                             QueryRunner query = new QueryRunner();
@@ -93,7 +91,7 @@ public class Comm_Search implements IServer_command {
                                     return employees;
                                 }
                             };
-                            List<Employee> emp = query.query(connection.getConn(), SQL, res, e.getJob());
+                            List<Employee> emp = query.query(user.getConnection().getConn(), SQL, res, e.getJob());
                             for(Employee em: emp){
                                 System.out.println("Employees found : " + em.toString());
                             }
@@ -101,7 +99,7 @@ public class Comm_Search implements IServer_command {
                             break;
                         }
                         System.out.println("Do you want to continue?");
-                        s = reader.readLine();
+                        s = user.getConnection().getReader().readLine();
                     }
                 }
             }
@@ -111,9 +109,6 @@ public class Comm_Search implements IServer_command {
         }
         catch (Exception e1) {
             e1.printStackTrace();
-        }
-        finally {
-            connection.disconnect();
         }
     }
 }
